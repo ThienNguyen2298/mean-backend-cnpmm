@@ -1,0 +1,5 @@
+// FACEBOOK 
+
+clientID: 534209673828624
+clientSecret: 341d64549bec947dd744773da91fc823
+Url:https://localhost:8001/auth/fb/callback

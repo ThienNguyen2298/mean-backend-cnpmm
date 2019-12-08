@@ -1,13 +1,22 @@
 // Call package
-var cors = require('cors');
-var jwt = require('jsonwebtoken');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const passport = require('passport');
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var morgan = require('morgan');
-var port = process.env.PORT || 8001; // Set the port to the app
-var mongoose = require('mongoose');
+const passportfb = require('passport-facebook').Strategy;
+const session = require('express-session');
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const port = process.env.PORT || 8001; // Set the port to the app
+const mongoose = require('mongoose');
+
+const User = require('./api/models/user');
+const router = express.Router();
+
+app.use(session({
+  secret: "dinhzxczxczxczxczxcdvasfdssdfsd"
+}))
 
 app.use(cors());
 
@@ -17,6 +26,8 @@ const productCategoryRoutes = require('./api/routes/productcategories');
 const userRoutes = require('./api/routes/users');
 const userTypeRoutes = require('./api/routes/usertypes');
 const branchRoutes = require('./api/routes/branchs');
+
+// const authRoutes = require('./api/routes/auth');
 
 
 // const userRoute = require('./api/routes/userroute');
@@ -50,14 +61,16 @@ app.use(passport.session());
 
 app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
   next();
-});
+}); 
 
 
 // Log all requests to the console
 app.use(morgan('dev'));
+
+
 
 
 // Declare routes here
@@ -66,9 +79,60 @@ app.use('/productcategories', productCategoryRoutes);
 app.use('/user', userRoutes);
 app.use('/usertypes', userTypeRoutes);
 app.use('/branchs', branchRoutes);
-// app.use('/usertypes', usertypeRoute);
-// app.use('/users', userRoute)
-// 
+
+// Login social appilcation
+
+app.get('/auth/fb', passport.authenticate('facebook', {
+  scope: ['email']
+}));
+
+
+app.get('/auth/fb/callback', passport.authenticate('facebook', {
+  // failureRedirect: '/',
+  // successRedirect: 'http://localhost:4200/home'
+}));
+
+passport.use(new passportfb(
+  {
+    clientID: "534209673828624",
+    clientSecret: "341d64549bec947dd744773da91fc823",
+    callbackURL: "http://localhost:8001/auth/fb/callback",
+    profileFields: ['email', 'gender', 'displayName']
+  },
+  (accessToken, refreshToken, profile, done) => {
+    console.log(profile);
+    User.findOne({ email: profile._json.email }, (err, user) => {
+      if (err) {
+        return done(err);
+      }
+      if (user) {
+        return done(null, user);
+      }
+
+      if (user == null) {
+        let newUser = new User({
+          _id: new mongoose.Types.ObjectId,
+          name: profile.displayName,
+          email: profile._json.email,
+        });
+        newUser.save();
+        return done(null, newUser);
+      }
+    })
+  }
+))
+
+passport.serializeUser((user, done) => {
+  done(null, user.id)
+});
+
+passport.deserializeUser((id, done) => {
+  User.findOne({
+    id: id
+  }, (err, user) => {
+    done(null, user)
+  })
+});
 
 // START THE SERVER
 // ==========
