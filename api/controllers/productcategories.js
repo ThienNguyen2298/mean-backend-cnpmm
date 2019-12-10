@@ -97,11 +97,17 @@ exports.productcategories_get_productcategory = (req, res, next) => {
 };
 
 exports.productcategories_update_productcategory = (req, res, next) => {
+    //console.log(req.body);
     const id = req.params.productCategoryId;
-    const updateOps = {};
-    for (const ops of req.body) {
-        updateOps[ops.propName] = ops.value;
-    }
+    console.log("id",id);
+    
+    const updateOps = new ProductCategory({
+        name: req.body.name,
+        description: req.body.description
+    });
+    
+    console.log("data",updateOps);
+    //console.log(req.body);
     ProductCategory.update({ _id: id }, { $set: updateOps })
         .exec()
         .then(result => {
