@@ -1,15 +1,36 @@
 // Call package
-var cors = require('cors');
-var jwt = require('jsonwebtoken');
+// const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const passport = require('passport');
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var morgan = require('morgan');
-var port = process.env.PORT || 8001; // Set the port to the app
-var mongoose = require('mongoose');
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const port = process.env.PORT || 8001; // Set the port to the app
+const mongoose = require('mongoose');
+const cookieSession = require('cookie-session');
+const keys = require('./config/keys');
 
-app.use(cors());
+//Configuration app to handle CROS requests
+// app.use(cors());
+app.use(function (req, res, next) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, content-type, Authorization");
+  next();
+});
+
+
+
+app.use(cookieSession({
+  maxAge: 4 * 60 * 60 * 1000,
+  keys: [keys.session.cookieKey]
+}));
+
+
+//inititlize passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 //Routes
 const productRoutes = require('./api/routes/products');
@@ -17,6 +38,9 @@ const productCategoryRoutes = require('./api/routes/productcategories');
 const userRoutes = require('./api/routes/users');
 const userTypeRoutes = require('./api/routes/usertypes');
 const branchRoutes = require('./api/routes/branchs');
+const authRoutes = require('./api/routes/auth');
+
+const passportSetup = require('./config/passport-setup');
 
 
 // const userRoute = require('./api/routes/userroute');
@@ -42,18 +66,6 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
-//thien add
-app.use(passport.initialize());
-app.use(passport.session());
-
-//Configuration app to handle CROS requests
-
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
-  next();
-});
 
 
 // Log all requests to the console
@@ -66,9 +78,7 @@ app.use('/productcategories', productCategoryRoutes);
 app.use('/user', userRoutes);
 app.use('/usertypes', userTypeRoutes);
 app.use('/branchs', branchRoutes);
-// app.use('/usertypes', usertypeRoute);
-// app.use('/users', userRoute)
-// 
+app.use('/auth', authRoutes);
 
 // START THE SERVER
 // ==========
