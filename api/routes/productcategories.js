@@ -10,8 +10,8 @@ router.post("/", ProductCategoriesController.productcategories_create_productcat
 
 router.get("/:productCategoryId", ProductCategoriesController.productcategories_get_productcategory);
 
-router.patch("/:productCategoryId", checkAuth, ProductCategoriesController.productcategories_update_productcategory);
+router.put("/:productCategoryId", ProductCategoriesController.productcategories_update_productcategory);
 
-router.delete("/:productCategoryId", checkAuth, ProductCategoriesController.productcategories_delete);
+router.delete("/:productCategoryId",  ProductCategoriesController.productcategories_delete);
 
 module.exports = router;
