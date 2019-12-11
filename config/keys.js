@@ -9,5 +9,6 @@ module.exports = {
     },
     session: {
         cookieKey: 'dinhquangnam123keyprodinhquangnamhaha'
-    }
+    },
+    supperSeceret: 'Dinh1Quang2Nam3asdasdsa',
 }

@@ -78,7 +78,7 @@ app.use('/productcategories', productCategoryRoutes);
 app.use('/user', userRoutes);
 app.use('/usertypes', userTypeRoutes);
 app.use('/branchs', branchRoutes);
-app.use('/auth', authRoutes);
+app.use('/auth', authRoutes(app, express, passport));
 
 // START THE SERVER
 // ==========

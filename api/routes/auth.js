@@ -1,60 +1,66 @@
-const router = require('express').Router();
-const passport = require('passport')
-//auth login
+var jwt = require('jsonwebtoken');
+var keys = require('../../config/keys');
+
+var supperSeceret = keys.supperSeceret;
+
+module.exports = function (app, express, passport) {
+
+    var createToken = function (auth) {
+        return jwt.sign({
+            id: auth.id
+        }, supperSeceret,
+            {
+                expiresIn: 10 * 100
+            });
+    };
+
+    var generateToken = function (req, res, next) {
+        req.token = createToken(req.auth);
+        next();
+    };
+
+    var sendToken = function (req, res) {
+
+        res.setHeader('x-auth-token', req.token);
+        console.log('x-auth-token', res.get('x-auth-token'));
+        res.status(200).send(req.token);
+    };
+
+    var authRouter = express.Router();
+
+    // Đăng nhập bằng google
+    authRouter.route('/google')
+        .post(passport.authenticate('google-token', { session: false }), function (req, res, next) {
+            if (!req.user) {
+                return res.send(401, 'User Not Authenticated');
+            }
+            // prepare token for API
+            console.log(req.user.username)
+            req.auth = {
+                id: req.user.id
+            };
+            next();
+        }, generateToken, sendToken);
 
 
-//auth logout 
-router.get('/logout', function (req, res) {
-    req.logout();
-    res.redirect('/');
-});
 
-const authCheck = (req, res, next) => {
-    if (!req.user) {
-        res.json({
-            message: 'User is not logged in',
-            success: false
-        });
-    }
-    else {
-        res.json({
-            message: 'User is logged in',
-            success: true
-        })
-    }
-};
+    authRouter.route('/facebook')
+        .post(passport.authenticate('facebook-token', { session: false }), function (req, res, next) {
+            console.log(req);
+            if (!req.user) {
+                return res.send(401, 'User Not Authenticated');
+            }
+            // prepare token for API
+            req.auth = {
+                id: req.user.id
+            };
+            next();
+        }, generateToken, sendToken);
 
-// auth with google
-router.get('/google', passport.authenticate('google', {
-    scope: ['email', 'profile']
-}));
-
-// callback router for google to redirect 
-router.get('/google/redirect', passport.authenticate('google'), (req, res) => {
-    res.json(req.user);
-});
-
-
-// auth with facebook
-router.get('/facebook', passport.authenticate('facebook', {
-    scope: ['email']
-}), (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
-    next();
-});
-
-// Callback rotuer for facebook to redirect
-router.get('/facebook/redirect', passport.authenticate('facebook'), (req, res) => {
-    res.json({
-        message: 'User info',
-        user: req.user
+    authRouter.get('/logout', function (req, res) {
+        req.logout();
+        res.status(200);
     });
-});
 
-// auth with local 
-
-
-
-module.exports = router;
+    return authRouter;
+}
