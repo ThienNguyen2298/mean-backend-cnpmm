@@ -11,6 +11,10 @@ const mongoose = require('mongoose');
 const cookieSession = require('cookie-session');
 const keys = require('./config/keys');
 
+const isLoggedIn = require('./api/middleware/check-isLoggedIn');
+
+const sendMail = require('./api/middleware/send-email')
+
 //Configuration app to handle CROS requests
 // app.use(cors());
 app.use(function (req, res, next) {
@@ -79,6 +83,11 @@ app.use('/user', userRoutes);
 app.use('/usertypes', userTypeRoutes);
 app.use('/branchs', branchRoutes);
 app.use('/auth', authRoutes);
+
+console.log('--------------------------------------------------------');
+//sendMail();
+
+isLoggedIn();
 
 // START THE SERVER
 // ==========
