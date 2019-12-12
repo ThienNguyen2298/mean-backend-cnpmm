@@ -2,10 +2,11 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var billSchema = new Schema({
-    _id: mongoose.Schema.Types.ObjectId,
-    dateCreated: {type: Date, required: true},
-    userOrder: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    _id: mongoose.Types.ObjectId,
+    dateCreated: { type: Date },
+    userOrder: { type: String, ref: 'User' },
     totalCost: Number,
+    isConfirm: Number,
     billDetail: [{
         type: mongoose.Types.ObjectId,
         ref: 'BillDetail'
