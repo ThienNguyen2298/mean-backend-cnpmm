@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const User = require('../models/user');
 const bcrypt = require('bcrypt-nodejs');
+var passport = require('passport');
+var jwt = require('jsonwebtoken');
+const secret = "mean"
 
 exports.users_register = (req, res, nex) => {
     console.log(req.body);
@@ -71,8 +74,35 @@ exports.users_register = (req, res, nex) => {
             });
         });
 };
-
-exports.users_login = (req, res, nex) => {
+module.exports.login = function(req, res) {
+    var user = {
+        username: req.body.username,
+        password: req.body.password
+    }
+    passport.authenticate('local', function(err, user, info){
+      var token;
+        
+      // If Passport throws/catches an error
+      if (err) {
+        res.status(404).json(err);
+        return;
+      }
+  
+      // If a user is found
+      if(user){
+        token = user.generateJwt();
+        res.status(200);
+        res.json({
+          "token" : token
+        });
+      } else {
+        // If user is not found
+        res.status(401).json(info);
+      }
+    })(req, res);
+  
+  };
+exports.users_login = (req, res, next) => {
     const username = req.body.username;
     const password = req.body.password;
     User.find(
@@ -97,8 +127,15 @@ exports.users_login = (req, res, nex) => {
                     })
                 }
                 if (result) {
+                    var token = jwt.sign({
+                        user: user
+                    }, secret, {
+                        expiresIn: '10' // Expires in 24 hours
+                    });
                     return res.status(200).json({
-                        message: 'Auth successfully'
+                        message: 'Auth successfully',
+                        'token': token,
+                        'user': user
                     })
                 }
                 return res.status(401).json({
