@@ -3,6 +3,7 @@ var FacebookTokenStrategy = require('passport-facebook-token');
 const GoogleTokenStrategy = require('passport-google-token').Strategy;
 const keys = require('./keys');
 const User = require('../api/models/user');
+var LocalStrategy = require('passport-local').Strategy;
 
 passport.use(
     new FacebookTokenStrategy({
@@ -54,3 +55,27 @@ passport.use(
         });
     })
 );
+
+passport.use(new LocalStrategy({
+  usernameField: 'email'
+},
+function(username, password, done) {
+  User.findOne({ username: username }, function (err, user) {
+    if (err) { return done(err); }
+    // Return if user not found in database
+    if (!user) {
+      return done(null, false, {
+        message: 'User not found'
+      });
+    }
+    // Return if password is wrong
+    if (!user.comparePassword(password)) {
+      return done(null, false, {
+        message: 'Password is wrong'
+      });
+    }
+    // If credentials are correct, return the user object
+    return done(null, user);
+  });
+}
+));
