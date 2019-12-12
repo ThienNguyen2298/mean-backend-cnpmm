@@ -17,9 +17,9 @@ const message = {
     html: '<h3>Click the link below to confirm your order</h3><p><a href="facebook.com">Link</a></p>'
 };
 
-module.exports = (url, total) => {
+module.exports = (url, total, email) => {
     console.log('Mail');
-    message.to = 'quangnamute.98@gmail.com';
+    message.to = email;
     message.html = '<h3>Click here to confirm your order</h3></br><h3>Total Cost:"' + total + '"</h3>' +
         '<p><a href="' + url + '">Link Confirm</a></p></br>';
     transport.sendMail(message, function (err, info) {

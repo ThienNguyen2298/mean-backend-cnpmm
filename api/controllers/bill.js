@@ -19,7 +19,7 @@ exports.bill_create = (req, res, next) => {
         .then(result => {
             console.log('Bill:', result);
             var url = "http://localhost:4200/bills/confirm-order/" + result._id;
-            sendMail(url, result.totalCost);
+            sendMail(url, result.totalCost, req.body.userEmail);
             res.status(200).json({
                 message: "Create Bill successfully!",
                 bill: {
